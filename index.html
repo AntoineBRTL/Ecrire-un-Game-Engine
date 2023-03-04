@@ -417,7 +417,7 @@ void main()
 {
     export class FileReader
     {
-        public async readFileAsync(path: string): Promise<string>
+        public async read(path: string): Promise<string>
         {
             // Use fetch to send GET requests
             let response = await fetch(path);
@@ -715,6 +715,43 @@ void main()
             Nous avons juste à ajouter en parametre un tableau de Triangle auquel on appele "render()" pour tout ses triangles.
             Ce changement n'est pas vraiment temporaire puisque plus l'etape d'après est de faire la meme chose avec une classe abstraite "Renderable"
             a laquelle on ajoutera la possibilité de mettre les vertices que nous voulons.
+        </p>
+
+        <p>
+            Je voulais juste vous montrer avant de continuer comment utiliser le FileReader: 
+        </p>
+
+<pre><code class="language-typescript">namespace TMP
+{
+    export class Main
+    {
+        public constructor()
+        {
+            // Call start cause it's async.
+            this.start();
+        }
+
+        private async start()
+        {
+            let fileReader: FileReader  = new FileReader();
+
+            let vertexShaderSource      = await fileReader.read('../Shaders/Default.vert');
+            let fragmentShaderSource    = await fileReader.read('../Shaders/Default.frag');
+
+            let triangle: Triangle      = new Triangle(vertexShaderSource, fragmentShaderSource);
+            let renderer: Renderer      = new Renderer();
+
+            renderer.render([triangle]);
+        }
+    }
+
+    new Main();
+}</code></pre>  
+
+        <p>
+            Comme vous pouvez le voir, il suffit de creer une methode dite async c'est a dire que a chaque fois qu'une function ou methode revoit une Promise,
+            il vous est possible d'attendre le resultat en utilisant le mot clé "await". Donc ici, "fragmentShaderSource" attends que "vertexShaderSource" soit chargé
+            et "triangle" attends que "fragmentShaderSource" soit chargé.
         </p>
 
     </article>
