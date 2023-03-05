@@ -11,6 +11,11 @@
     <article id="Post">
         <h1 id="Title">Ecrire un Game Engine</h1>
 
+        <p>
+            (Petit aparté) Je me dois de preciser tout d'abord que ce livre est toujours en cours d'ecriture, toujours est-il que si vous n'avez pas peur de vous
+            perdre dans mes modifications usuelles, vous pouvez suivre ce cours (Fin aparté).
+        </p>
+
         <div id="Abstract">
             <p>
                 Commençons par nous mettre dans le bain avec un peu d'histoire. 
@@ -31,6 +36,62 @@
                 je vous conseille la <a href="https://www.youtube.com/watch?v=-d7xzAZTBA8">video</a> de Sylvqin qui en parle fort bien mieux que moi.
             </p>
         </div>
+
+        <p>
+            Sommaire:
+            <ul id="SummaryTable">
+                <li>
+                    1. Préliminaires
+                </li>
+                <li>
+                    2. La base graphique
+                </li>
+                <ul>
+                    <li>
+                        2.A. La fenetre
+                    </li>
+                    <ul>
+                        <li>
+                            2.B.1 Creer une fenetre
+                        </li>
+                        <li>
+                            2.B.2 Recuperer un context OpenGL
+                        </li>
+                    </ul>
+                    <li>
+                        2.B. Mise en route d'OpenGL
+                    </li>
+                    <ul>
+                        <li>
+                            2.B.1 Effacer l'ecran
+                        </li>
+                        <li>
+                            2.B.2 Mettre le canvas a la bonne taille
+                        </li>
+                    </ul>
+                    <li>
+                        2.C. Premier triangle  
+                    </li>
+                    <ul>
+                        <li>
+                            2.C.1. Ecrire les Shaders 
+                        </li>
+                        <li>
+                            2.C.2. Lire les Shaders 
+                        </li>
+                        <li>
+                            2.C.3. Compiler les shaders 
+                        </li>
+                        <li>
+                            2.C.4. Creer un "program" 
+                        </li>
+                        <li>
+                            2.C.5. Rendre un triangle 
+                        </li>
+                    </ul>
+                </ul>
+            </ul>
+        </p>
 
         <h1>
             1. Préliminaires
@@ -76,6 +137,15 @@
         </h1>
 
         <p>
+            Dans cette partie, nous commencerons le developpement du moteur graphique. C'est une des etapes les plus difficiles alors 
+            accrochez vous bien.
+        </p>
+
+        <h2>
+            2.A. La fenetre
+        </h2>
+
+        <p>
             La premiere étape dans la creation d'un Game Engine, je dirais que c'est la creation de la fenetre. En C, cela peut s'averer un peu compliqué mais
             vous pouvez utiliser la <a href="https://www.sfml-dev.org/">SFML</a>, c'est une très bonne lib française. Toujours est-il que si vous ne voulez pas utiliser 
             la SFML, d'autres choix s'offrent a vous comme la celebre <a href="https://www.glfw.org/">GMFW</a> ou encore des fonction internes a votre OS
@@ -114,7 +184,65 @@
         </p>
 
         <h2>
-            2.A. Recuperer un context OpenGL
+            2.A.1 Creer une fenetre
+        </h2>
+
+        <p>
+            En HTML, creer une fenetre reviens a afficher une page HTML dans un navigateur. 
+            Nous allons donc profiter de cette partie pour un tour sur la creation de notre projet.
+        </p>
+
+        <p>
+            Comme nous ecrivons une lib, nous ne devons pas donner de page html a l'utilisateur (ceci n'est pas valable si vous faite votre lib en C
+            ou dans un autre langage que Typescript), c'est lui qui devra s'en occuper. Cependant, nous avons 
+            besoin de tester notre Engine, nous allons alors creer un dossier "Demo" dans lequel on stockera la page HTML mais aussi la classe "Main",
+            (par convention, le nom du fichier est le nom de la classe, donc le fichier "Main.ts" contient la classe "Main").
+        </p>
+
+        <p>
+            A coté de ce dossier nous allons creer un autre dossier "Engine", celui ci sera le dossier source de la lib. 
+            Vous verrez que dans mes script, j'utilise des names spaces, cela vous montre dans quel dossier se trouve la classe. 
+            Donc si vous m'avez bien suivit, vous devrez avoir avoir un projet qui ressemble a ceci :
+
+            <ul class="FileTree">
+                <li>
+                    Demo
+                </li>
+                <ul>
+                    <li>
+                        index.html
+                    </li>
+                    <li>
+                        Main.ts
+                    </li>
+                </ul>
+                <li>
+                    Engine
+                </li>
+                <ul>
+                    <li>
+                        Classe
+                    </li>
+                    <ul>
+                        <li>
+                            AudioEngine
+                        </li>
+                        <li>
+                            PhysicEngine
+                        </li>
+                        <li>
+                            RenderEngine
+                        </li>
+                        <li>
+                            ...
+                        </li>
+                    </ul>
+                </ul>
+            </ul>
+        </p>
+
+        <h2>
+            2.A.2 Recuperer un contexte OpenGL
         </h2>
 
         <p>
@@ -176,13 +304,18 @@
         </p>
 
         <h2>
-            2.B. Faux premier rendu
+            2.B. Mise en route d'OpenGL
         </h2>
 
         <p>
             Souvent, la premiere chose que je fais c'est de vider le contenus du canvas, c'est tres
             simple et ça permet de voir si OpenGL marche bien. Modifions la classe "RenderEnvironment" et creons une classe "Renderer":
         </p>
+
+
+        <h3>
+            2.B.1 Effacer l'ecran 
+        </h3>
 
 <pre><code class="language-typescript">namespace RenderEngine
 {
@@ -241,9 +374,13 @@
             Essayez d'appler la methode "render()".
         </p>
 
+        <h3>
+            2.B.2 Mettre le canvas a la bonne taille 
+        </h3>
+
         <p>
             Un petit rectangle gris foncé apparait. C'est bien le canvas qui est effacé, cependant le canvas n'est pas de la bonne taille, il est beaucoup trop petit.
-            Ce probleme peut etre corrigé très simplement, modifions la class "RenderEnvironment" en ajoutant une methode "resize()":
+            Ce probleme peut etre corrigé très simplement, modifions la classe "RenderEnvironment" en ajoutant une methode "resize()":
         </p>
 
 <pre><code class="language-typescript">namespace RenderEngine
@@ -341,7 +478,7 @@
     </p>
 
     <h3>
-        2.C.1. Les Shaders
+        2.C.1. Ecrire les shaders
     </h3>
 
     <p>
@@ -394,10 +531,6 @@ void main()
             C'est aussi un vec4 mais pas pour les memes raisons, ici on specifit une couleur RGBA en utilisant les composantes XYZW
             d'un vec4. Dans ce shader, la couleur de sortie est du rouge.
         </p>
-
-        <h3>
-            2.C.2. Retours au Typescript
-        </h3>
         
         <p>
             Une fois nos shaders ecrits, nous pouvons revenir au Typescript. Le but va etre de les compiler, pour ça nous avons besoin du code du shader
@@ -405,7 +538,7 @@ void main()
         </p>
 
         <h3>
-            2.C.2.1. Lire les Shaders
+            2.C.2. Lire les Shaders
         </h3>
 
         <p>
@@ -432,7 +565,7 @@ void main()
         </p>
 
         <h3>
-            2.C.2.2. Compiler les shaders
+            2.C.3. Compiler les shaders
         </h3>
 
         <p>
@@ -469,7 +602,7 @@ void main()
 }</code></pre>
 
     <h3>
-        2.C.2.3. Creer un "program"
+        2.C.4. Creer un "program"
     </h3>
 
     <p>
@@ -503,7 +636,7 @@ void main()
 }</code></pre>
 
     <h3>
-        2.C.2.4. Rendre un triangle
+        2.C.5. Rendre un triangle
     </h3>
 
     <p>
@@ -721,7 +854,7 @@ void main()
             Je voulais juste vous montrer avant de continuer comment utiliser le FileReader: 
         </p>
 
-<pre><code class="language-typescript">namespace TMP
+<pre><code class="language-typescript">namespace Demo
 {
     export class Main
     {
