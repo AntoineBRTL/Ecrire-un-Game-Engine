@@ -867,20 +867,20 @@ void main()
 
         private async start()
         {
-            let fileReader: Utils.FileReader    = new Utils.FileReader();
+            let fileReader: Utils.FileReader  = new Utils.FileReader();
 
-            let vertexShaderSource: string      = await fileReader.read('../Shaders/Default.vert');
-            let fragmentShaderSource: string    = await fileReader.read('../Shaders/Default.frag');
+            let vertexShaderSource      = await fileReader.read('../Engine/Classe/Shaders/Default.vert');
+            let fragmentShaderSource    = await fileReader.read('../Engine/Classe/Shaders/Default.frag');
 
-            let triangle: TMP.Triangle          = new TMP.Triangle(vertexShaderSource, fragmentShaderSource);
-            let renderer: RenderEngine.Renderer = new RenderEngine.Renderer();
+            let triangle: TMP.Triangle      = new TMP.Triangle(vertexShaderSource, fragmentShaderSource);
+            let renderer: RenderEngine.Renderer      = new RenderEngine.Renderer();
 
             renderer.render([triangle]);
         }
     }
+}
 
-    new Main();
-}</code></pre>  
+new Demo.Main();</code></pre>  
 
         <p>
             Comme vous pouvez le voir, il suffit de creer une methode dite async c'est a dire que a chaque fois qu'une function ou methode revoit une Promise,
