@@ -268,8 +268,8 @@
         {
             // Create a canvas, display it in HTML & remove unwanted style from body.
             let canvas: HTMLCanvasElement = document.createElement('canvas');
-            document.appendChild(canvas);
-            document.style.margin = "0px";
+            document.body.appendChild(canvas);
+            document.body.style.margin = "0px";
 
             return canvas;
         }
@@ -348,11 +348,11 @@
 {
     export class Renderer
     {
-        private renderEnvironment: RenderEnvironment;
+        private renderEnvironment: RenderEngine.RenderEnvironment;
 
         public constructor()
         {
-            this.renderEnvironment = new renderEnvironment();
+            this.renderEnvironment = new RenderEngine.renderEnvironment();
         }
 
         private clear(gl: WebGL2RenderingContext): void
@@ -396,7 +396,7 @@
 
             // Resize & start a resize event listener on the window
             this.resize();
-            this.window.addEventListener('resize', this.resize.bind(this));
+            window.addEventListener('resize', this.resize.bind(this));
         }
 
         // ...
@@ -519,7 +519,7 @@ void main()
 
 <pre><code class="language-glsl">#version 300 es
 precision mediump float;
-layout(location = 0) out vec4 fragColor;
+out vec4 fragColor;
 
 void main()
 {
@@ -665,23 +665,23 @@ void main()
             this.fragmentShaderSource   = fragmentShaderSource;
         }
 
-        public render(gl: WebGL2RenderingContext, renderer: Renderer)
+        public render(gl: WebGL2RenderingContext, renderer: RenderEngine.Renderer)
         {
             // Compile shaders if its not already done.
             if(!this.program)
             {
                 this.vertexShader   = renderer.compileShader(gl, this.vertexShaderSource, gl.VERTEX_SHADER);
-                this.fragmentShader = renderer.compileShader(gl, this.fragmentShaderSource, gl.VERTEX_SHADER);
-                this.program        = renderer.createProgram(gl, vertexShader, fragmentShader);
+                this.fragmentShader = renderer.compileShader(gl, this.fragmentShaderSource, gl.FRAGMENT_SHADER);
+                this.program        = renderer.createProgram(gl, this.vertexShader, this.fragmentShader);
             }
 
             // Create triangle vertices.
             let verticePositions: number[];
             verticePositions = [
                 //  X       Y       Z
-                   -1.0,   -1.0,    0.0
-                    1.0,    1.0,    0.0
-                    0.0,    1.0,    0.0
+                   -1.0,   -1.0,    0.0,
+                    1.0,    1.0,    0.0,
+                    0.0,    1.0,    0.0,
             ];
 
             // Draw ...
@@ -731,20 +731,20 @@ void main()
             this.fragmentShaderSource   = fragmentShaderSource;
             this.verticePositions       = new Float32Array([
                 //   X       Y       Z
-                    -1.0,   -1.0,    0.0
-                     1.0,    1.0,    0.0
-                     0.0,    1.0,    0.0
+                    -1.0,   -1.0,    0.0,
+                     1.0,    1.0,    0.0,
+                     0.0,    1.0,    0.0,
             ]);
         }
 
-        public render(gl: WebGL2RenderingContext, renderer: Renderer)
+        public render(gl: WebGL2RenderingContext, renderer: RenderEngine.Renderer)
         {
             // Compile shaders if its not already done.
             if(!this.program)
             {
                 this.vertexShader   = renderer.compileShader(gl, this.vertexShaderSource, gl.VERTEX_SHADER);
-                this.fragmentShader = renderer.compileShader(gl, this.fragmentShaderSource, gl.VERTEX_SHADER);
-                this.program        = renderer.createProgram(gl, vertexShader, fragmentShader);
+                this.fragmentShader = renderer.compileShader(gl, this.fragmentShaderSource, gl.FRAGMENT_SHADER);
+                this.program        = renderer.createProgram(gl, this.vertexShader, this.fragmentShader);
             }
 
             // Create buffer if its not already done.
@@ -765,16 +765,16 @@ void main()
     {
         // ...
 
-        public sendBuffer(gl: WebGL2RenderingContext, name: string, buffer: WebGLBuffer, iterable: Float32Array, length: number): void
+        public sendBuffer(gl: WebGL2RenderingContext, name: string, buffer: WebGLBuffer | null, program: WebGLProgram, iterable: Float32Array, length: number): void
         {
             // Update buffer data.
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, value, this.gl.DYNAMIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, iterable, gl.DYNAMIC_DRAW);
     
             // Send buffer to vertex shader.
-            let location = this.gl.getAttribLocation(program, name);
-            this.gl.enableVertexAttribArray(location);
-            this.gl.vertexAttribPointer(location, length, this.gl.FLOAT, false, length * Float32Array.BYTES_PER_ELEMENT, 0);
+            let location = gl.getAttribLocation(program, name);
+            gl.enableVertexAttribArray(location);
+            gl.vertexAttribPointer(location, length, gl.FLOAT, false, length * Float32Array.BYTES_PER_ELEMENT, 0);
         }
 
         // ...
@@ -799,14 +799,14 @@ void main()
     {
         // ...
 
-        public render(gl: WebGL2RenderingContext, renderer: Renderer)
+        public render(gl: WebGL2RenderingContext, renderer: RenderEngine.Renderer)
         {
             // ...
 
             gl.useProgram(this.program);
-            renderer.sendBuffer(gl, "vertexPosition", this.vertexBuffer, this.verticePositions, 3);
+            renderer.sendBuffer(gl, "vertexPosition", this.vertexBuffer, this.program, this.verticePositions, 3);
 
-            gl.drawArrays(gl.TRIANGLES, 0, this.verticePositions/3);
+            gl.drawArrays(gl.TRIANGLES, 0, this.verticePositions.length/3);
         }
 
         // ...
@@ -831,7 +831,7 @@ void main()
     {
         // ...
 
-        public render(triangles: Triangle[]): void
+        public render(triangles: TMP.Triangle[]): void
         {
             // ...
 
@@ -867,13 +867,13 @@ void main()
 
         private async start()
         {
-            let fileReader: FileReader  = new FileReader();
+            let fileReader: Utils.FileReader    = new Utils.FileReader();
 
-            let vertexShaderSource      = await fileReader.read('../Shaders/Default.vert');
-            let fragmentShaderSource    = await fileReader.read('../Shaders/Default.frag');
+            let vertexShaderSource: string      = await fileReader.read('../Shaders/Default.vert');
+            let fragmentShaderSource: string    = await fileReader.read('../Shaders/Default.frag');
 
-            let triangle: Triangle      = new Triangle(vertexShaderSource, fragmentShaderSource);
-            let renderer: Renderer      = new Renderer();
+            let triangle: TMP.Triangle          = new TMP.Triangle(vertexShaderSource, fragmentShaderSource);
+            let renderer: RenderEngine.Renderer = new RenderEngine.Renderer();
 
             renderer.render([triangle]);
         }
