@@ -90,6 +90,14 @@
                             2.C.5. Rendre un triangle 
                         </li>
                     </ul>
+                    <li>
+                        2.D. Premier rendu 3D
+                    </li>
+                    <ul>
+                        <li>
+                            2.D.1. Creer des meshes 
+                        </li>
+                    </ul>
                 </ul>
             </ul>
         </p>
@@ -864,7 +872,7 @@ void main()
             // Call start cause it's async.
             this.start();
         }
-
+ 
         private async start()
         {
             let fileReader: Utils.FileReader    = new Utils.FileReader();
@@ -883,9 +891,124 @@ void main()
 new Demo.Main();</code></pre>  
 
         <p>
-            Comme vous pouvez le voir, il suffit de creer une methode dite async c'est a dire que a chaque fois qu'une function ou methode revoit une Promise,
+            Comme vous pouvez le voir, il suffit de creer une methode A dite async c'est a dire que a chaque fois qu'une function ou methode B revoit une Promise à l'interieur de A,
             il vous est possible d'attendre le resultat en utilisant le mot clé "await". Donc ici, "fragmentShaderSource" attends que "vertexShaderSource" soit chargé
             et "triangle" attends que "fragmentShaderSource" soit chargé.
+        </p>
+
+        <h2>
+            2.D Premier rendu 3D
+        </h2>
+
+        <p>
+            Apres avoir rendu un triangle sur l'ecran, je pense que vous voulez essayer de rendre de la 3D. Apres tout, tout les Game Engines en sont capables 
+            alors pourquoi pas nous ? Très bien, si c'est ce que vous voulez, dans cette partie nous nous occuperons de faire le rendu d'un cube.
+        </p>
+
+        <h2>
+            2.D.1. Creer des meshes
+        </h2>
+
+        <p>
+            En realité, pour rendre un cube, nous pourrions utiliser le code du triangle et ajouter des vertices. Ceci marcherait tres bien cependant je n'aime pas avoir 
+            du code mal rangé. De plus, quand nous faisons des rendu 2D, nous avons juste besoin des positions des vertices, maintenant dans les rendus 3D, il nous 
+            faudra prendre en compte les normales de chaques vertices. Ces normales ne sont pas obligatoire mais elle sont utilisés pour simmuler entre autre la lumiere. 
+        </p>
+
+        <p>
+            Je parle de normale d'une vertices, mais si vous avez bien suivit, nous parlions jusqu'a present d'une vertice comme un point dans l'espace. Or la 
+            normale d'un point, ça ne veut rien dire ... Alors à quoi ça correspond? 
+        </p>
+
+        <p>
+            Dans un model 3D, chaque vertices se trouve entre trois triangle. On peut donc calculer la normale des trois triangles 
+            (cela correspond au produit vectoriel de deux des cotés du triangle) adjacents et d'en faire la moyenne.
+        </p>
+
+        <img src="./figure2.png" alt="">
+
+        <p>
+            J'ai mis mes talants de dessinateurs à l'oeuvre pour vous faire un petit tétraèdre, les fleches noires representes des normales des triangles et les 
+            fleches rouges sont les normales des vertices. Bon, ne vous en faite pas, les fichiers contenant les models 3D contienent la position, la normale et 
+            les uv (nous verrons ce que c'est un peu plus tard) des chaques vertices, vous n'avez pas besoin des les calculer à la main.
+        </p>
+
+        <p>
+            Donc à partir de maintenant, une vertice n'est plus qu'une position mais un objet ayant une position et une normale. Et quel est le point commun entre une position 
+            et une normale? Les deux peuvent etre representés par des vecteurs. Je vous offre une belle classe "Vector3":
+        </p>
+
+<pre><code class="language-typescript">namespace Math
+{
+    export class Vector3 extends Float32Array
+    {
+        public get x(): number { return this[0]; }
+        public get y(): number { return this[1]; }
+        public get z(): number { return this[2]; }
+
+        public set x(x:number) { this[0] = x; }
+        public set y(y:number) { this[1] = y; }
+        public set z(z:number) { this[2] = z; }
+
+        public constructor();
+        public constructor(x: number, y: number, z: number);
+        public constructor(x?: number, y?: number, z?: number)
+        {
+            super(3);
+            this[0] = x || 0.0;
+            this[1] = y || 0.0;
+            this[2] = z || 0.0;
+        }
+
+        public dot(vector: Vector3): number
+        {
+            return this[0] * vector[0] + this[1] * vector[1] + this[2] * vector[2];
+        }
+
+        public getMagnitude(): number
+        {
+            return Math.sqrt(this.dot(this));
+        }
+
+        public add(vector: Vector3): Vector3
+        {
+            return new Vector3(this[0] + vector[0], this[1] + vector[1], this[2] + vector[2]);
+        }
+
+        public scale(x: number): Vector3
+        {
+            return new Vector3(this[0] * x, this[1] * x, this[2] * x);
+        }
+
+        public substract(vector: Vector3): Vector3
+        {
+            return this.add(vector.scale(-1));
+        }
+
+        public divide(x: number): Vector3
+        {
+            return this.scale(1 / x);
+        }
+
+        public product(vector: Vector3): Vector3
+        {
+            return new Vector3(this[0] * vector[0], this[1] * vector[1], this[2] * vector[2]);
+        }
+
+        public cross(vector: Vector3): Vector3
+        {
+            return new Vector3(
+                this[1] * vector[2] - this[2] * vector[1], 
+                this[2] * vector[0] - this[0] * vector[2],
+                this[0] * vector[1] - this[1] * vector[0]
+            );
+        }
+    }
+}</code></pre> 
+
+        <p>
+            Cette classe est une fille de Float32Array, vous l'aviez deja vu lors de l'envoie de donnés dans les buffers. C'est un tableau très bas niveau ou 
+            l'acces en lecture y est très rapide. Je mets des getters "x" "y" et "z" pour simplifier l'utilisation mais "Vector3[0]" et similaire a "Vector3.x".
         </p>
 
     </article>
